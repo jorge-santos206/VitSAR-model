@@ -16,7 +16,7 @@ from tensorflow import io as tf_io
 
 #pre-processing
 IMAGE_SIZE = 16
-NUM_CHANNELS = 9
+NUM_CHANNELS = 13
 BATCH_SIZE = 2
 NUM_CLASSES = 3
 DATA_DIR = "../data/dataset"
