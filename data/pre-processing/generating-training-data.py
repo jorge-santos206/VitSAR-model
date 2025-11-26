@@ -1,16 +1,20 @@
+from unicodedata import decomposition
+
 import rasterio
 import matplotlib.pyplot as plt
 import numpy as np
 import cv2
 import span as s
 import cloudPottier as cloud
+import  freemanDecomposition as free
 with rasterio.open('image-sar1200x900.tif') as dataset:
     sarImage=dataset.read()
     sarImage=np.moveaxis(sarImage,0,-1)
 print(sarImage.shape)
 sarImage= s.spanImage(sarImage)
 sarImage= cloud.cloudPottierDecom(sarImage)
-
+sarImage= free.freeman_decomposition_auto(sarImage)
+print(sarImage.shape)
 HH=sarImage[:,:,0]
 HV=sarImage[:,:,1]
 VV=sarImage[:,:,2]
