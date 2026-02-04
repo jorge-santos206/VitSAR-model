@@ -7,6 +7,11 @@ import cv2
 import span as s
 import cloudPottier as cloud
 import  freemanDecomposition as free
+import crossPolarization as cross
+import copolarization as co
+import huynenDecomposition as hu
+import edgyLineEnergy as edgy
+import glcm as glcm
 with rasterio.open('image-sar1200x900.tif') as dataset:
     sarImage=dataset.read()
     sarImage=np.moveaxis(sarImage,0,-1)
@@ -14,6 +19,12 @@ print(sarImage.shape)
 sarImage= s.spanImage(sarImage)
 sarImage= cloud.cloudPottierDecom(sarImage)
 sarImage= free.freeman_decomposition_auto(sarImage)
+sarImage= cross.crosspolarization(sarImage)
+sarImage= co.copolarization(sarImage)
+sarImage= hu.huynenDecomposition(sarImage)
+sarImage=glcm.add_glcm_channels(sarImage)
+sarImage= edgy.add_edge_energy_channels(sarImage)
+sarImage= edgy.add_line_energy_channels(sarImage)
 print(sarImage.shape)
 HH=sarImage[:,:,0]
 HV=sarImage[:,:,1]
