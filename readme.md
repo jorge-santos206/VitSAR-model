@@ -1,56 +1,109 @@
-Estrutura do Repositório:
+# Repository Structure
+
+```text
 attentionSarModel/
 │
 ├── architectures/
-│   └── deeplabv3.py              # Modelo DeepLabV3+ + Channel Attention + treinamento
+│   └── deeplabv3.py
+│       # DeepLabV3+ + Channel Attention model and training
 │
 ├── data/
 │   ├── dataset/
-│   │   ├── images/               # Patches de imagem SAR (sample_0.npy ... sample_N.npy)
-│   │   └── masks/                # Masks de segmentação (mask_0.npy ... mask_N.npy)
+│   │   ├── images/
+│   │   │   └── sample_0.npy ... sample_N.npy
+│   │   │
+│   │   └── masks/
+│   │       └── mask_0.npy ... mask_N.npy
 │   │
 │   ├── pre-processing/
-│   │   ├── generating-training-data.py   # Pipeline completo de geração de dados
-│   │   ├── image-sar1200x900.tif         # Imagem SAR original AirSAR São Francisco
-│   │   ├── SF-AIRSAR-label3d.png         # Mapa de rótulos (6 classes)
-│   │   ├── cloudPottier.py               # Decomposição Cloude-Pottier (H, α, A)
-│   │   ├── freemanDecomposition.py       # Decomposição Freeman-Durden
-│   │   ├── copolarization.py             # Feature de copolarização
-│   │   ├── crossPolarization.py          # Feature de crosspolarização
-│   │   ├── huynenDecomposition.py        # Decomposição Huynen
-│   │   ├── glcm.py                       # Features de textura GLCM
-│   │   ├── edgyLineEnergy.py             # Features de borda e linha
-│   │   ├── leeFilter.py                  # Filtro de speckle Lee
-│   │   └── span.py                       # SPAN (potência total)
+│   │   ├── generating-training-data.py
+│   │   │   # Complete preprocessing pipeline
+│   │   │
+│   │   ├── image-sar1200x900.tif
+│   │   │   # Original AirSAR San Francisco image
+│   │   │
+│   │   ├── SF-AIRSAR-label3d.png
+│   │   │   # Segmentation labels (6 classes)
+│   │   │
+│   │   ├── cloudPottier.py
+│   │   │   # Cloude-Pottier decomposition
+│   │   │
+│   │   ├── freemanDecomposition.py
+│   │   │   # Freeman-Durden decomposition
+│   │   │
+│   │   ├── copolarization.py
+│   │   │   # Copolarization features
+│   │   │
+│   │   ├── crossPolarization.py
+│   │   │   # Cross-polarization features
+│   │   │
+│   │   ├── huynenDecomposition.py
+│   │   │   # Huynen decomposition
+│   │   │
+│   │   ├── glcm.py
+│   │   │   # Texture features (GLCM)
+│   │   │
+│   │   ├── edgyLineEnergy.py
+│   │   │   # Edge and line features
+│   │   │
+│   │   ├── leeFilter.py
+│   │   │   # Speckle reduction filter
+│   │   │
+│   │   └── span.py
+│   │       # SPAN feature extraction
 │   │
 │   └── r-files/
-│       ├── AirSAR_SanFrancisc_Enxu.RData  # Dados brutos em formato R
-│       └── creating-tiff-arch.R            # Script R para geração do .tif
+│       ├── AirSAR_SanFrancisc_Enxu.RData
+│       │   # Raw SAR data
+│       │
+│       └── creating-tiff-arch.R
+│           # Generates the .tif image
 │
 ├── docs/
-│   └── images/                   # Imagens para o README (adicione aqui)
+│   └── images/
+│       # README images
 │
 └── README.md
+```
+# Model Architecture
 
+```text
+Input (16×16×51)
+        ↓
+Backbone
+(Conv5×5 → MaxPool → Conv3×3)
+        ↓
 
+┌────────────────────────────────┐
+│ ASPP Branch                    │
+│ dilation rates = 1, 2, 4, 6   │
+└────────────────────────────────┘
 
-Arquitetura do Modelo
-O modelo DeeplabV3Plus é composto pelos seguintes módulos em sequência:
+                +
+                
+┌────────────────────────────────┐
+│ Low-Level Branch               │
+│ Conv1×1 → 48 filters           │
+└────────────────────────────────┘
 
-Entrada (16×16×51)
-       ↓
-   Backbone (Conv5×5 → MaxPool → Conv3×3)
-       ↓
-  ┌────────────────────────────────┐
-  │  Branch ASPP (dilation 1,2,4,6)│   Branch Low-Level (Conv1×1, 48 filtros)
-  └────────────────────────────────┘
-       ↓ UpSampling                      ↓ UpSampling
-       └──────────── Concat ─────────────┘
-                      ↓
-                  Decoder (Conv3×3)
-                      ↓
-           🔥 Channel Attention Block
-                      ↓
-           Classificador Final (Conv1×1 Softmax)
-                      ↓
-          Saída (16×16×6 classes)
+        ↓
+     UpSampling
+        ↓
+
+────────── Concat ──────────
+        ↓
+
+Decoder
+(Conv3×3)
+        ↓
+
+🔥 Channel Attention Block
+        ↓
+
+Final Classifier
+(Conv1×1 + Softmax)
+        ↓
+
+Output
+(16×16×6 classes)
+```
