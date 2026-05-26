@@ -5,10 +5,9 @@ import random
 import os
 import numpy as np
 from glob import glob
-import cv2
-from scipy.io import loadmat
 import matplotlib.pyplot as plt
 import tensorflow as tf
+from sklearn.utils import shuffle
 SEED = 42
 # Python
 random.seed(SEED)
@@ -22,20 +21,20 @@ os.environ["PYTHONHASHSEED"] = str(SEED)
 IMAGE_SIZE = 16
 NUM_CHANNELS = 51
 BATCH_SIZE = 2
-NUM_CLASSES = 3
+NUM_CLASSES = 6
 DATA_DIR = "../data/dataset"
-NUM_TRAIN_IMAGES = 450
-NUM_VAL_IMAGES = 50
+NUM_TRAIN_IMAGES = 1200
+NUM_VAL_IMAGES = 300
 
-train_images = sorted(glob(os.path.join(DATA_DIR, "images/*")))[:NUM_TRAIN_IMAGES]
-train_masks = sorted(glob(os.path.join(DATA_DIR, "masks/*")))[:NUM_TRAIN_IMAGES]
-val_images = sorted(glob(os.path.join(DATA_DIR, "images/*")))[
-    NUM_TRAIN_IMAGES : NUM_VAL_IMAGES + NUM_TRAIN_IMAGES
-]
-val_masks = sorted(glob(os.path.join(DATA_DIR, "masks/*")))[
-    NUM_TRAIN_IMAGES : NUM_VAL_IMAGES + NUM_TRAIN_IMAGES
-]
+images = sorted(glob(os.path.join(DATA_DIR, "images/*")))
+masks  = sorted(glob(os.path.join(DATA_DIR, "masks/*")))
 
+images, masks = shuffle(images, masks, random_state=SEED)
+
+train_images = images[:NUM_TRAIN_IMAGES]
+train_masks  = masks[:NUM_TRAIN_IMAGES]
+val_images = images[NUM_TRAIN_IMAGES:NUM_TRAIN_IMAGES + NUM_VAL_IMAGES]
+val_masks  = masks[NUM_TRAIN_IMAGES:NUM_TRAIN_IMAGES + NUM_VAL_IMAGES]
 def read_image(image_path, mask=False):
     # Carrega o arquivo .npy (usando numpy)
     image = np.load(image_path.decode())  # decode() converte string tf -> str Python
@@ -260,14 +259,14 @@ model.summary()
 
 loss = keras.losses.SparseCategoricalCrossentropy(from_logits=True)
 model.compile(
-    optimizer=keras.optimizers.Adam(learning_rate=0.001),
+    optimizer=keras.optimizers.Adam(learning_rate=0.0001),
     loss=loss,
     metrics=["accuracy"],
 )
 
 
 
-history = model.fit(train_dataset, validation_data=val_dataset, epochs=54)
+history = model.fit(train_dataset, validation_data=val_dataset, epochs=100)
 
 plt.plot(history.history["loss"])
 plt.title("Training Loss")
@@ -280,5 +279,19 @@ plt.title("Training Accuracy")
 plt.ylabel("accuracy")
 plt.xlabel("epoch")
 plt.show()
+
+
+plt.plot(history.history["val_loss"])
+plt.title("Validation Loss")
+plt.ylabel("val_loss")
+plt.xlabel("epoch")
+plt.show()
+
+plt.plot(history.history["val_accuracy"])
+plt.title("Validation Accuracy")
+plt.ylabel("val_accuracy")
+plt.xlabel("epoch")
+plt.show()
+
 
 model.save("deeplabv3+.keras")

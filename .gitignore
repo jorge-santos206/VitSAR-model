@@ -1,13 +1,12 @@
 
 models/*
-
+idea/
 
 !models/*.py
 !models/*.ipynb
-
+pre-processing/*.png
 
 models/*.keras
 models/*.h5
 models/*.npy
-
-
+sarImage.npy
